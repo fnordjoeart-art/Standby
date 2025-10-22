@@ -177,7 +177,7 @@ export function Settings({
               <li>1. Collega l'iPhone in carica</li>
               <li>2. Ruota il dispositivo in orizzontale</li>
               <li>3. L'app manterrà lo schermo acceso</li>
-              <li>4. Supporta Always-On Display (iPhone 14 Pro+)</li>
+              <li>4. Supporta Always-On Display</li>
             </ul>
           </div>
 
@@ -189,10 +189,24 @@ export function Settings({
             }}
           >
             <h3 className="text-base sm:text-lg mb-2 sm:mb-3" style={{ color: textColor }}>Privacy</h3>
-            <p className="text-xs sm:text-sm opacity-70 leading-relaxed" style={{ color: textColor }}>
+            <p className="text-xs sm:text-sm opacity-70 leading-relaxed mb-3" style={{ color: textColor }}>
               Tutti i tuoi dati rimangono sul dispositivo. Nessuna informazione viene condivisa o inviata a server esterni. 
               I media che importi restano privati e sicuri.
             </p>
+            <a 
+              href="https://playserious.it/AppStorePrivacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs sm:text-sm inline-flex items-center gap-1 hover:underline"
+              style={{ color: accentColor }}
+            >
+              Leggi la Privacy Policy completa
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/>
+                <line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+            </a>
           </div>
           </div>
         </div>

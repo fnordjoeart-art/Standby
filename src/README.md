@@ -1,22 +1,30 @@
 # StandBy+ — Sveglia da Comodino
 
-App iOS premium con sfondi video loop, temi personalizzabili e supporto modalità StandBy.
+App iOS premium con sfondi video loop, temi personalizzabili, audio sveglie avanzate e supporto modalità StandBy.
 
 ## 🚀 Funzionalità
 
 ### MVP (v1.0)
 - ✅ **Orologio Analogico e Digitale** - Tap per cambiare modalità
-- ✅ **Temi Completamente Personalizzabili** - 4 preset + personalizzazione colori completa
-- ✅ **Sfondi Video Loop** - Collezione integrata con video seamless
-- ✅ **Sistema Sveglie** - Notifiche locali, ripetizioni settimanali, fade-in
+- ✅ **Temi Completamente Personalizzabili** - 6 preset + personalizzazione colori completa
+- ✅ **Sfondi Video Loop** - Collezione integrata con video seamless + upload custom
+- ✅ **Sistema Sveglie Completo**
+  - Time Picker a rotella stile iOS
+  - Notifiche locali native
+  - Ripetizioni settimanali
+  - 24 suonerie stile iOS (Radar, Apex, Beacon, etc.)
+  - Volume regolabile con fade-in automatico (3s)
+  - Vibrazione iOS-style
+  - Snooze configurabile (default 5 min)
+  - Schermata fullscreen quando suona
 - ✅ **Modalità StandBy** - Rilevamento automatico landscape + carica
 - ✅ **Dimming Automatico** - Riduzione luminosità notturna (22:00-07:00)
 - ✅ **Anti Burn-in** - Micro-movimento dell'orologio analogico
 - ✅ **Risparmio Energetico** - Pausa video con batteria < 20%
-- ✅ **Responsive Design** - Mobile, tablet, desktop
+- ✅ **Responsive Design** - Mobile, tablet, desktop con safe area iOS
 - ✅ **Wake Lock API** - Mantiene schermo acceso
 - ✅ **Persistenza Locale** - Tutte le impostazioni salvate su localStorage
-- ✅ **Privacy-First** - Zero tracking, dati solo on-device
+- ✅ **Privacy-First** - Zero tracking, dati solo on-device ([Privacy Policy](https://playserious.it/AppStorePrivacy))
 
 ## 📱 Stack Tecnologico
 
@@ -60,15 +68,24 @@ npx cap open android
 ```
 /
 ├── App.tsx                     # Main app con logica centrale
-├── capacitor.config.ts         # Config Capacitor
+├── capacitor.config.ts         # Config Capacitor (bundle: com.playserious.standbyplus)
+├── CHANGELOG.md                # Changelog dettagliato modifiche
 ├── components/
 │   ├── AnalogClock.tsx        # Orologio analogico con lancette animate
 │   ├── DigitalClock.tsx       # Orologio digitale responsive
 │   ├── AlarmManager.tsx       # Gestione sveglie + notifiche
-│   ├── ThemeCustomizer.tsx    # Personalizzazione colori
-│   ├── BackgroundSelector.tsx # Scelta sfondi video/immagini
+│   ├── AlarmRinging.tsx       # Schermata sveglia attiva con audio
+│   ├── RingtoneSelector.tsx   # Selezione 24 suonerie + volume
+│   ├── TimePickerWheel.tsx    # Time picker rotella stile iOS
+│   ├── ThemeCustomizer.tsx    # Personalizzazione colori (6 preset)
+│   ├── BackgroundSelector.tsx # Upload/selezione sfondi video/immagini
 │   ├── VideoBackground.tsx    # Player video con gestione batteria
-│   └── Settings.tsx           # Pannello impostazioni
+│   └── Settings.tsx           # Pannello impostazioni completo
+├── docs/
+│   └── STANDBY_WIDGET.md      # Guida implementazione widget iOS nativo
+├── public/
+│   └── sounds/
+│       └── README.md          # Guida risorse audio suonerie
 ├── src/
 │   └── main.tsx              # Init Capacitor + Wake Lock + Notifications
 └── styles/
@@ -77,18 +94,48 @@ npx cap open android
 
 ## 🎨 Temi Predefiniti
 
-1. **Apple Modern** (default) - Rosa neon (#FF2E91) + Blu ciano (#0FA3FF)
-2. **Vintage '80** - Rosa pastello + Ciano neon
-3. **Natura Relax** - Verde acqua + Oro
-4. **Futuristico** - Verde neon + Viola
+1. **Midnight** (default) - Rosa neon (#FF2E91) + Blu ciano (#0FA3FF)
+2. **Neon Nights** - Rosa elettrico + Ciano neon
+3. **Ocean Breeze** - Turchese + Blu oceano
+4. **Sunset Glow** - Arancio + Rosa corallo
+5. **Forest Dream** - Verde smeraldo + Lime
+6. **Natura** - Verde acqua + Viola profondo
+
+Ogni tema include personalizzazione completa di:
+- Background e Surface
+- Primary e Secondary Accent
+- Text Primary e Secondary
 
 ## 🔔 Sistema Sveglie
 
-- Ripetizioni settimanali (selezione giorni)
-- Vibrazione opzionale
+### Gestione Sveglie
+- Time Picker a rotella stile iOS (interfaccia nativa)
+- Ripetizioni settimanali (selezione singoli giorni)
+- Etichette personalizzabili per ogni sveglia
+- Toggle on/off rapido
 - Notifiche locali native (Capacitor)
-- Fade-in volume (preparato per implementazione audio)
 - Anello colorato su orologio analogico per prossima sveglia
+
+### Audio e Suonerie
+- 24 suonerie predefinite stile iOS:
+  - Radar, Apex, Beacon, Bulletin, Chimes
+  - Circuit, Constellation, Cosmic, Crystals
+  - Hillside, Illuminate, Night Owl, Opening
+  - Playtime, Presto, Radiate, Reflection
+  - Sencha, Silk, Slow Rise, Stargaze
+  - Summit, Twinkle, Uplift
+- Volume regolabile con slider (0-100%)
+- Fade-in automatico 3 secondi
+- Preview audio 5 secondi per ogni suoneria
+- Vibrazione iOS-style pattern
+
+### Snooze e Dismissal
+- Snooze configurabile (default 5 minuti)
+- Schermata fullscreen quando suona
+- Animazione bell icon pulsante
+- Barra volume live
+- Pulsanti touch-friendly grandi
+- Gesture intuitive dismiss/snooze
 
 ## 🌐 Modalità StandBy
 
@@ -116,6 +163,8 @@ Dimensioni orologio adattive:
 - Nessun dato inviato a server esterni
 - LocalStorage per persistenza impostazioni
 - Media files restano on-device
+- Zero PII (Personally Identifiable Information)
+- Privacy Policy completa: [playserious.it/AppStorePrivacy](https://playserious.it/AppStorePrivacy)
 
 ## 📦 Dipendenze Principali
 
@@ -133,16 +182,41 @@ Dimensioni orologio adattive:
 }
 ```
 
-## 🚧 Roadmap Fase 2
+## 🚧 Roadmap
 
-- [ ] Widget Lock Screen (WidgetKit)
+### Fase 2 (v1.1) - In Pianificazione
+- [ ] **Widget iOS StandBy Mode** - Widget nativo per Lock Screen ([Guida completa](/docs/STANDBY_WIDGET.md))
+  - Widget piccolo/medio/grande
+  - Accessory widgets per Lock Screen
+  - Live Activities per sveglia attiva
+  - Always-On Display optimization
 - [ ] Routine sveglia (meteo/agenda/quote)
 - [ ] Challenge disattivazione (math/puzzle/QR)
-- [ ] iCloud sync temi
+- [ ] Import foto/video da libreria iOS
+
+### Fase 3 (v1.2) - Futuro
+- [ ] iCloud sync temi e impostazioni
 - [ ] Pack premium sfondi (IAP)
-- [ ] Import foto/video da libreria utente
 - [ ] Audio ambient (white noise/mare/pioggia)
-- [ ] Telemetry privacy-first (TelemetryDeck)
+- [ ] Spotify integration
+- [ ] HealthKit statistiche sonno
+- [ ] Comandi vocali Siri
+
+## 📝 Note Implementazione
+
+### File Audio Suonerie
+I file audio MP3 delle suonerie devono essere aggiunti manualmente in `/public/sounds/`.  
+Vedi `/public/sounds/README.md` per:
+- Link a risorse royalty-free
+- Specifiche tecniche (formato, bitrate, durata)
+- Note legali e licenze
+
+### Widget iOS
+Per implementare il widget nativo StandBy Mode:
+1. Leggi la guida completa: `/docs/STANDBY_WIDGET.md`
+2. Richiede Xcode 15+ e Swift 5.9+
+3. iOS 17+ per StandBy Mode
+4. iOS 16.1+ per Always-On Display
 
 ## 📄 Licenza
 

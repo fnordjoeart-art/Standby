@@ -161,17 +161,23 @@ npm run android # Apre Android Studio
 - ⚠️ Aggiungere file audio MP3 reali in `/public/sounds/`
 - ⚠️ Testare su dispositivo reale iOS/Android
 
-### 2. **Gestione Sfondi Migliorata** ✓
+### 2. **UI/UX Miglioramenti** ✓
 **Implementato:**
-- ✅ Eliminato doppio bottone upload (fix UI confusa)
+- ✅ Logo StandBy+ originale in header
+- ✅ Spaziamenti mobile ottimizzati (safe area compliant)
+- ✅ Padding aumentati su tutti i pannelli (px-5 sm:px-8)
+- ✅ Icone più grandi e touch-friendly (min 40x40px)
+- ✅ Link Privacy Policy aggiunto (https://playserious.it/AppStorePrivacy)
+- ✅ Rimosso riferimento "iPhone 14 Pro" dalla modalità StandBy
 - ✅ Funzione elimina sfondi custom (pulsante X rosso)
-- ✅ Interfaccia unificata e più intuitiva
-- ✅ Gestione memoria blob URL per video
-- ✅ Persistenza immagini in localStorage
+- ✅ Eliminato doppio bottone upload sfondi
+- ✅ Interfaccia unificata e più chiara
 
 **Fix applicati:**
-- ✅ Rimossa sezione "Importa i tuoi video" duplicata
-- ✅ UI più pulita e chiara
+- ✅ Tutti i pannelli rispettano safe area iOS
+- ✅ Bottoni e icone lontani dai bordi schermo
+- ✅ Logo campanella rimosso (sostituito con logo orologio)
+- ✅ Privacy policy linkabile con icona external link
 
 ## 🔴 FUNZIONALITÀ DA IMPLEMENTARE
 
