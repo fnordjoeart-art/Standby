@@ -91,8 +91,14 @@ Tutte le modifiche significative al progetto saranno documentate in questo file.
 ### ⚠️ Note Implementazione
 
 **Audio Sveglie:**
-- I file audio MP3 devono essere aggiunti manualmente in `/public/sounds/`
-- Vedi `/public/sounds/README.md` per link a risorse gratuite
+- ⚠️ **I file audio MP3 NON sono inclusi** nel repository per motivi di licenza
+- Devono essere aggiunti manualmente in `/public/sounds/`
+- L'app funziona comunque e mostra un warning visivo se i file non sono presenti
+- Vedi `/public/sounds/README.md` per:
+  - Elenco file richiesti (24 suonerie)
+  - Link a risorse audio royalty-free
+  - Specifiche tecniche (formato, bitrate, durata)
+  - Note legali e licenze
 - Testing completo richiede build nativa iOS/Android
 
 **Widget StandBy:**

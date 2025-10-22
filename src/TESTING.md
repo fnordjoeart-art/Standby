@@ -256,11 +256,24 @@ Nessun bug critico noto al momento.
 Quando testi in browser (non build nativa):
 
 - ❌ Notifiche locali NON funzionano (require Capacitor)
-- ❌ Suoni sveglia NON funzionano (file MP3 non presenti)
+- ⚠️ Suoni sveglia NON funzionano (file MP3 non presenti per default)
+  - L'app mostra un warning arancione
+  - Puoi comunque selezionare le suonerie
+  - Aggiungi i file MP3 in `/public/sounds/` per testare l'audio
+  - Vedi `/public/sounds/README.md` per link risorse
 - ❌ Vibrazione NON funziona su desktop
 - ⚠️ Battery API potrebbe non essere disponibile
 - ⚠️ Wake Lock potrebbe non funzionare
 - ⚠️ Accelerometro non disponibile su desktop
+
+### Testing Audio Suonerie
+
+Per testare le suonerie:
+1. Scarica file MP3 da fonti royalty-free (vedi `/public/sounds/README.md`)
+2. Rinomina i file come indicato (es: `radar.mp3`, `apex.mp3`, etc.)
+3. Posiziona i file in `/public/sounds/`
+4. Ricarica l'app - il warning sparirà
+5. Testa preview audio nel pannello Suonerie
 
 ## 📊 Test Results Template
 

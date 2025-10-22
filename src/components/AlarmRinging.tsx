@@ -35,9 +35,16 @@ export function AlarmRinging({
     audioRef.current.loop = true;
     audioRef.current.volume = 0;
 
+    // Add error handler
+    audioRef.current.addEventListener('error', (e) => {
+      console.error('Error loading alarm audio:', e);
+      // Continue without audio - visual alarm still works
+    });
+
     // Start playing
     audioRef.current.play().catch(err => {
       console.error('Error playing alarm:', err);
+      // Continue without audio - visual alarm still works
     });
 
     // Fade in over 3 seconds

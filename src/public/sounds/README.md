@@ -1,5 +1,11 @@
 # Suonerie StandBy+
 
+## ⚠️ IMPORTANTE
+
+**I file audio non sono inclusi nel repository.** Devi aggiungerli manualmente per utilizzare le suonerie.
+
+L'app funziona comunque senza i file audio (mostra un warning e permette la selezione della suoneria).
+
 ## Istruzioni
 
 Questa cartella deve contenere i file audio delle suonerie.

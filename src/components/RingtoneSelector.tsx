@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Volume2, Play, Pause, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Volume2, Play, Pause, Check, AlertCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
 import { motion } from 'motion/react';
+import { toast } from 'sonner';
 
 export interface Ringtone {
   id: string;
@@ -60,8 +61,30 @@ export function RingtoneSelector({
 }: RingtoneSelectorProps) {
   const [previewingId, setPreviewingId] = useState<string | null>(null);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [audioFilesAvailable, setAudioFilesAvailable] = useState(false);
+
+  // Check if audio files are available
+  useEffect(() => {
+    const checkAudio = async () => {
+      try {
+        const response = await fetch('/sounds/radar.mp3', { method: 'HEAD' });
+        setAudioFilesAvailable(response.ok);
+      } catch {
+        setAudioFilesAvailable(false);
+      }
+    };
+    checkAudio();
+  }, []);
 
   const handlePreview = (ringtone: Ringtone) => {
+    if (!audioFilesAvailable) {
+      toast.error('File audio non disponibili', {
+        description: 'Aggiungi i file MP3 in /public/sounds/ per ascoltare l\'anteprima. Vedi /public/sounds/README.md',
+        duration: 5000,
+      });
+      return;
+    }
+
     // Stop current preview if any
     if (audio) {
       audio.pause();
@@ -76,14 +99,30 @@ export function RingtoneSelector({
       // Start new preview
       const newAudio = new Audio(ringtone.url);
       newAudio.volume = volume;
+      
+      newAudio.addEventListener('error', () => {
+        toast.error('Errore riproduzione audio', {
+          description: `Il file ${ringtone.name} non è stato trovato in /public/sounds/`,
+          duration: 4000,
+        });
+        setPreviewingId(null);
+      });
+
       newAudio.play().catch(err => {
         console.error('Error playing preview:', err);
+        toast.error('Impossibile riprodurre audio', {
+          description: 'Verifica che i file MP3 siano presenti in /public/sounds/',
+          duration: 4000,
+        });
+        setPreviewingId(null);
       });
       
       // Auto stop after 5 seconds
       setTimeout(() => {
-        newAudio.pause();
-        setPreviewingId(null);
+        if (newAudio) {
+          newAudio.pause();
+          setPreviewingId(null);
+        }
       }, 5000);
 
       setAudio(newAudio);
@@ -155,6 +194,25 @@ export function RingtoneSelector({
             className="w-full"
           />
         </div>
+
+        {/* Warning se file audio non disponibili */}
+        {!audioFilesAvailable && (
+          <div 
+            className="mt-4 p-3 rounded-xl flex items-start gap-2 text-xs"
+            style={{ 
+              background: 'rgba(255, 152, 0, 0.1)',
+              border: '1px solid rgba(255, 152, 0, 0.3)'
+            }}
+          >
+            <AlertCircle size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#ff9800' }} />
+            <div style={{ color: textColor }} className="opacity-80">
+              <p className="font-medium mb-1">File audio non disponibili</p>
+              <p className="opacity-70 leading-relaxed">
+                Puoi selezionare una suoneria, ma l'anteprima non funzionerà finché non aggiungi i file MP3 in <code className="px-1 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.1)' }}>/public/sounds/</code>
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Lista suonerie */}

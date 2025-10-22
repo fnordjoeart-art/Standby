@@ -156,9 +156,17 @@ npm run android # Apre Android Studio
 - `/components/AlarmRinging.tsx` - Schermata sveglia che suona
 - `/components/RingtoneSelector.tsx` - Selezione suonerie
 - `/public/sounds/README.md` - Guida per aggiungere file audio
+- `/public/sounds/.gitkeep` - Mantiene directory in git
+
+**Gestione errori audio:**
+- ✅ Warning visivo se file MP3 non presenti
+- ✅ Toast informativo con istruzioni
+- ✅ App funziona comunque (silent alarm)
+- ✅ Preview disabilitato fino a quando file aggiunti
+- ✅ Check automatico disponibilità audio all'apertura pannello
 
 **Da fare:**
-- ⚠️ Aggiungere file audio MP3 reali in `/public/sounds/`
+- ⚠️ Aggiungere file audio MP3 reali in `/public/sounds/` (NON inclusi per copyright)
 - ⚠️ Testare su dispositivo reale iOS/Android
 
 ### 2. **UI/UX Miglioramenti** ✓
@@ -248,7 +256,7 @@ npm run android # Apre Android Studio
 
 ## 🐛 PROBLEMI NOTI E FIX
 
-### ✅ RISOLTI
+### �� RISOLTI
 
 1. **Velo grigio su tutti i pannelli**
    - ❌ Problema: Background #020202 invece di #000000
