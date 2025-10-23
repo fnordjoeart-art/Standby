@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Volume2, Play, Pause, Check, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Volume2, Play, Pause, Check, AlertCircle, Upload, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
 import { motion } from 'motion/react';
@@ -10,6 +10,7 @@ export interface Ringtone {
   name: string;
   url: string;
   duration: number; // secondi
+  isCustom?: boolean;
 }
 
 // Suonerie predefinite (URL placeholder - da sostituire con file reali)
@@ -62,6 +63,8 @@ export function RingtoneSelector({
   const [previewingId, setPreviewingId] = useState<string | null>(null);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [audioFilesAvailable, setAudioFilesAvailable] = useState(false);
+  const [customRingtones, setCustomRingtones] = useState<Ringtone[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Check if audio files are available
   useEffect(() => {
@@ -74,6 +77,16 @@ export function RingtoneSelector({
       }
     };
     checkAudio();
+
+    // Load custom ringtones from localStorage
+    const savedCustom = localStorage.getItem('customRingtones');
+    if (savedCustom) {
+      try {
+        setCustomRingtones(JSON.parse(savedCustom));
+      } catch (e) {
+        console.error('Error loading custom ringtones:', e);
+      }
+    }
   }, []);
 
   const handlePreview = (ringtone: Ringtone) => {
@@ -147,6 +160,69 @@ export function RingtoneSelector({
     }
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    if (!file.type.startsWith('audio/')) {
+      toast.error('Formato non supportato', {
+        description: 'Seleziona un file audio (MP3, M4A, WAV, etc.)',
+      });
+      return;
+    }
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File troppo grande', {
+        description: 'Il file audio deve essere massimo 5MB',
+      });
+      return;
+    }
+
+    // Create object URL
+    const url = URL.createObjectURL(file);
+    const customRingtone: Ringtone = {
+      id: `custom_${Date.now()}`,
+      name: file.name.replace(/\.[^/.]+$/, ''), // Remove extension
+      url: url,
+      duration: 30,
+      isCustom: true
+    };
+
+    const updated = [...customRingtones, customRingtone];
+    setCustomRingtones(updated);
+    localStorage.setItem('customRingtones', JSON.stringify(updated));
+
+    toast.success('Suoneria aggiunta', {
+      description: `"${customRingtone.name}" importata con successo`,
+    });
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteCustom = (ringtoneId: string) => {
+    const ringtone = customRingtones.find(r => r.id === ringtoneId);
+    if (!ringtone) return;
+
+    // Revoke object URL to free memory
+    URL.revokeObjectURL(ringtone.url);
+
+    const updated = customRingtones.filter(r => r.id !== ringtoneId);
+    setCustomRingtones(updated);
+    localStorage.setItem('customRingtones', JSON.stringify(updated));
+
+    // If this was selected, reset to default
+    if (selectedRingtone === ringtoneId) {
+      onSelectRingtone('radar');
+    }
+
+    toast.success('Suoneria rimossa');
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -217,8 +293,130 @@ export function RingtoneSelector({
 
       {/* Lista suonerie */}
       <div className="flex-1 overflow-y-auto px-5 sm:px-8 pb-safe landscape:px-10 landscape:py-8">
-        <div className="space-y-1 max-w-2xl mx-auto">
-          {defaultRingtones.map((ringtone) => {
+        <div className="space-y-6 max-w-2xl mx-auto">
+          
+          {/* Sezione Custom Ringtones */}
+          {customRingtones.length > 0 && (
+            <div>
+              <h3 className="text-sm opacity-50 mb-3 px-2" style={{ color: textColor }}>
+                Le mie suonerie
+              </h3>
+              <div className="space-y-1">
+                {customRingtones.map((ringtone) => {
+                  const isSelected = selectedRingtone === ringtone.id;
+                  const isPreviewing = previewingId === ringtone.id;
+
+                  return (
+                    <motion.div
+                      key={ringtone.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center gap-3 p-4 rounded-xl transition-all cursor-pointer"
+                      style={{
+                        background: isSelected ? accentColor + '15' : 'transparent',
+                        border: `1px solid ${isSelected ? accentColor + '40' : 'transparent'}`
+                      }}
+                      onClick={() => handleSelect(ringtone.id)}
+                    >
+                      {/* Nome */}
+                      <div className="flex-1 min-w-0">
+                        <span 
+                          className="text-base block truncate"
+                          style={{ 
+                            color: textColor,
+                            fontWeight: isSelected ? '600' : '400'
+                          }}
+                        >
+                          {ringtone.name}
+                        </span>
+                      </div>
+
+                      {/* Preview button */}
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePreview(ringtone);
+                        }}
+                        variant="ghost"
+                        size="sm"
+                        className="w-10 h-10 rounded-full p-0 flex-shrink-0"
+                        style={{
+                          background: isPreviewing ? accentColor + '20' : 'rgba(255, 255, 255, 0.05)',
+                          color: isPreviewing ? accentColor : textColor
+                        }}
+                      >
+                        {isPreviewing ? <Pause size={16} /> : <Play size={16} />}
+                      </Button>
+
+                      {/* Delete button */}
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteCustom(ringtone.id);
+                        }}
+                        variant="ghost"
+                        size="sm"
+                        className="w-10 h-10 rounded-full p-0 flex-shrink-0"
+                        style={{
+                          background: 'rgba(255, 59, 48, 0.1)',
+                          color: '#ff3b30'
+                        }}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+
+                      {/* Checkmark */}
+                      {isSelected && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                          className="flex-shrink-0"
+                        >
+                          <Check size={20} style={{ color: accentColor }} />
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Upload button */}
+          <div>
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full p-4 rounded-xl flex items-center justify-center gap-2 text-base"
+              style={{
+                background: accentColor + '15',
+                border: `1px dashed ${accentColor}40`,
+                color: accentColor
+              }}
+            >
+              <Upload size={20} />
+              <span>Importa dal tuo telefono</span>
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="audio/*"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <p className="text-xs opacity-50 mt-2 px-2 text-center leading-relaxed" style={{ color: textColor }}>
+              Seleziona file audio dalle cartelle del tuo dispositivo (Files, Downloads, iCloud Drive)<br />
+              <span className="opacity-70">Formati: MP3, M4A, WAV • Max 5MB</span>
+            </p>
+          </div>
+
+          {/* Sezione Default Ringtones */}
+          <div>
+            <h3 className="text-sm opacity-50 mb-3 px-2" style={{ color: textColor }}>
+              Suonerie predefinite
+            </h3>
+            <div className="space-y-1">
+              {defaultRingtones.map((ringtone) => {
             const isSelected = selectedRingtone === ringtone.id;
             const isPreviewing = previewingId === ringtone.id;
 
@@ -277,6 +475,8 @@ export function RingtoneSelector({
               </motion.div>
             );
           })}
+            </div>
+          </div>
         </div>
       </div>
     </motion.div>

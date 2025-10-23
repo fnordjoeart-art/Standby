@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Settings as SettingsIcon, Maximize2, Minimize2, Bell } from 'lucide-react';
+import { Settings as SettingsIcon, Maximize2, Minimize2, Bell, Clock } from 'lucide-react';
 import { AnalogClock } from './components/AnalogClock';
 import { DigitalClock } from './components/DigitalClock';
 import { AlarmManager, type Alarm } from './components/AlarmManager';
@@ -14,7 +14,7 @@ import { Button } from './components/ui/button';
 import { requestWakeLock, scheduleAlarmNotifications } from './src/main';
 import { toast } from 'sonner';
 import { Toaster } from './components/ui/sonner';
-import logoImage from 'figma:asset/e4d0e2c9a7c1437ba1be2558ec7bf5aa318ea050.png';
+
 
 interface Background {
   id: string;
@@ -439,11 +439,12 @@ export default function App() {
               className="pt-safe px-5 sm:px-8 py-4 sm:py-5 flex items-center justify-between"
             >
               <div className="flex items-center gap-3 sm:gap-4">
-                <img 
-                  src={logoImage} 
-                  alt="StandBy+ Logo" 
-                  className="w-10 h-10 sm:w-12 sm:h-12"
-                />
+                <div 
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center"
+                  style={{ background: theme.primaryAccent + '20' }}
+                >
+                  <Clock size={20} className="sm:w-6 sm:h-6" style={{ color: theme.primaryAccent }} />
+                </div>
                 <h1 className="text-xl sm:text-2xl" style={{ color: theme.textPrimary }}>StandBy+</h1>
               </div>
               <div className="flex items-center gap-3 sm:gap-4">
@@ -679,7 +680,17 @@ export default function App() {
             onDismiss={handleAlarmDismiss}
             accentColor={theme.primaryAccent}
             textColor={theme.textPrimary}
-            ringtone={`/sounds/${ringingAlarm.ringtone || ringtone}.mp3`}
+            ringtone={(() => {
+              const ringtoneId = ringingAlarm.ringtone || ringtone;
+              // Check if it's a custom ringtone
+              const customRingtones = JSON.parse(localStorage.getItem('customRingtones') || '[]');
+              const customRingtone = customRingtones.find((r: any) => r.id === ringtoneId);
+              if (customRingtone) {
+                return customRingtone.url;
+              }
+              // Default ringtones
+              return `/sounds/${ringtoneId}.mp3`;
+            })()}
             volume={ringtoneVolume}
           />
         )}
