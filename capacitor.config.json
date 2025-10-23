@@ -1,5 +1,5 @@
 {
-  "appId": "it.tuo.bundle.id",
+  "appId": "it.standby.app",
   "appName": "Standby",
-  "webDir": "dist"
+  "webDir": "build"
 }
