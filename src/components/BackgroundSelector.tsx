@@ -4,6 +4,12 @@ import { Image as ImageIcon, Video, Upload, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { toast } from 'sonner';
+import { 
+  saveFileToPersistentStorage, 
+  loadStoredFiles, 
+  deleteStoredFile,
+  initializeStorage 
+} from '../src/fileStorage';
 
 interface Background {
   id: string;
@@ -31,30 +37,49 @@ export function BackgroundSelector({
   const videoInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   
-  // Custom uploads - Videos use blob URLs (session only)
+  // Custom uploads - Stored persistently on device
   const [customVideos, setCustomVideos] = useState<Background[]>([]);
-  
-  // Custom images stored in localStorage
-  const [customImages, setCustomImages] = useState<Background[]>(() => {
-    const stored = localStorage.getItem('standby-custom-images');
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [customImages, setCustomImages] = useState<Background[]>([]);
+  const [isLoadingFiles, setIsLoadingFiles] = useState(true);
 
-  // Save images to localStorage
+  // Initialize storage and load saved files on mount
   useEffect(() => {
-    localStorage.setItem('standby-custom-images', JSON.stringify(customImages));
-  }, [customImages]);
-
-  // Cleanup blob URLs on unmount
-  useEffect(() => {
-    return () => {
-      customVideos.forEach(video => {
-        if (video.url.startsWith('blob:')) {
-          URL.revokeObjectURL(video.url);
-        }
-      });
+    const loadSavedFiles = async () => {
+      try {
+        await initializeStorage();
+        const storedFiles = await loadStoredFiles();
+        
+        const videos: Background[] = [];
+        const images: Background[] = [];
+        
+        storedFiles.forEach(file => {
+          const bg: Background = {
+            id: file.id,
+            type: file.mimeType.startsWith('video/') ? 'video' : 'image',
+            url: file.uri,
+            thumbnail: file.uri,
+            name: file.fileName.replace(/\.[^/.]+$/, '')
+          };
+          
+          if (bg.type === 'video') {
+            videos.push(bg);
+          } else {
+            images.push(bg);
+          }
+        });
+        
+        setCustomVideos(videos);
+        setCustomImages(images);
+      } catch (error) {
+        console.error('Error loading saved files:', error);
+        toast.error('Errore nel caricamento degli sfondi salvati');
+      } finally {
+        setIsLoadingFiles(false);
+      }
     };
-  }, [customVideos]);
+    
+    loadSavedFiles();
+  }, []);
 
   // Pack predefiniti (usando placeholder per demo)
   const videoBackgrounds: Background[] = [
@@ -136,43 +161,42 @@ export function BackgroundSelector({
       return;
     }
 
-    // Check file size (max 100MB for blob URLs)
+    // Check file size (max 100MB)
     if (file.size > 100 * 1024 * 1024) {
       toast.error('Il video è troppo grande. Max 100MB');
       return;
     }
 
     // Show loading toast
-    const loadingToast = toast.loading('Caricamento video...');
+    const loadingToast = toast.loading('Salvataggio video...');
 
     try {
-      // Small delay to ensure UI updates
-      await new Promise(resolve => setTimeout(resolve, 100));
+      const id = `custom-video-${Date.now()}`;
       
-      // Create blob URL (much more efficient than base64)
-      const blobUrl = URL.createObjectURL(file);
+      // Save to persistent storage
+      const storedFile = await saveFileToPersistentStorage(file, id);
       
       const newVideo: Background = {
-        id: `custom-video-${Date.now()}`,
+        id: storedFile.id,
         type: 'video',
-        url: blobUrl,
-        thumbnail: blobUrl,
+        url: storedFile.uri,
+        thumbnail: storedFile.uri,
         name: file.name.replace(/\.[^/.]+$/, '')
       };
       
       setCustomVideos(prev => [...prev, newVideo]);
-      toast.success('Video caricato!', { id: loadingToast });
+      toast.success('Video salvato!', { id: loadingToast });
       onSelectBackground(newVideo);
     } catch (error) {
       console.error('Error uploading video:', error);
-      toast.error('Errore nel caricamento', { id: loadingToast });
+      toast.error('Errore nel salvataggio', { id: loadingToast });
     }
     
     event.target.value = ''; // Reset input
   };
 
   // Handle image upload
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -187,45 +211,70 @@ export function BackgroundSelector({
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
+    // Show loading toast
+    const loadingToast = toast.loading('Salvataggio immagine...');
+
+    try {
+      const id = `custom-image-${Date.now()}`;
+      
+      // Save to persistent storage
+      const storedFile = await saveFileToPersistentStorage(file, id);
+      
       const newImage: Background = {
-        id: `custom-image-${Date.now()}`,
+        id: storedFile.id,
         type: 'image',
-        url: dataUrl,
-        thumbnail: dataUrl,
+        url: storedFile.uri,
+        thumbnail: storedFile.uri,
         name: file.name.replace(/\.[^/.]+$/, '')
       };
       
       setCustomImages(prev => [...prev, newImage]);
-      toast.success('Immagine caricata con successo!');
+      toast.success('Immagine salvata!', { id: loadingToast });
       onSelectBackground(newImage);
-    };
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Errore nel salvataggio', { id: loadingToast });
+    }
     
-    reader.readAsDataURL(file);
     event.target.value = ''; // Reset input
   };
 
   // Delete custom background
-  const deleteCustomBackground = (bg: Background, event: React.MouseEvent) => {
+  const deleteCustomBackground = async (bg: Background, event: React.MouseEvent) => {
     event.stopPropagation();
     
-    if (bg.type === 'video') {
-      // Revoke blob URL to free memory
-      if (bg.url.startsWith('blob:')) {
-        URL.revokeObjectURL(bg.url);
+    const loadingToast = toast.loading('Rimozione...');
+    
+    try {
+      // Delete from persistent storage
+      await deleteStoredFile(bg.name + '.' + getFileExtension(bg.url));
+      
+      if (bg.type === 'video') {
+        setCustomVideos(prev => prev.filter(v => v.id !== bg.id));
+      } else {
+        setCustomImages(prev => prev.filter(i => i.id !== bg.id));
       }
-      setCustomVideos(prev => prev.filter(v => v.id !== bg.id));
-    } else {
-      setCustomImages(prev => prev.filter(i => i.id !== bg.id));
+      
+      if (currentBackground?.id === bg.id) {
+        onSelectBackground(null);
+      }
+      
+      toast.success('Sfondo rimosso', { id: loadingToast });
+    } catch (error) {
+      console.error('Error deleting background:', error);
+      toast.error('Errore nella rimozione', { id: loadingToast });
     }
-    
-    if (currentBackground?.id === bg.id) {
-      onSelectBackground(null);
+  };
+  
+  // Helper to get file extension from URL
+  const getFileExtension = (url: string): string => {
+    // For Capacitor URIs
+    if (url.includes('backgrounds/')) {
+      const match = url.match(/backgrounds\/[^/]+\.([^.?]+)/);
+      return match ? match[1] : 'jpg';
     }
-    
-    toast.success('Sfondo rimosso');
+    // Fallback
+    return 'jpg';
   };
 
   const BackgroundCard = ({ bg, isCustom = false }: { bg: Background; isCustom?: boolean }) => {
@@ -377,7 +426,7 @@ export function BackgroundSelector({
                     Max 100MB • MP4, MOV, WebM
                   </span>
                   <span className="text-[10px] opacity-40" style={{ color: textColor }}>
-                    I video caricati restano attivi solo durante la sessione
+                    ✓ Salvati permanentemente sul tuo dispositivo
                   </span>
                 </div>
               </button>
